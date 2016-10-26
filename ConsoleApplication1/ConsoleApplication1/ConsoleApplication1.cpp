@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <codecvt>
+#include <conio.h>
+#include <Windows.h>
 #pragma comment(lib,"libcurl.lib")
 using namespace std;
 //TODO Время обновления, циклическое выполнение(?)
@@ -17,23 +19,30 @@ void write_time(wifstream &p);
 
 int main()
 {
+	
+	
+	do
+	{
+		get_page();
+		wifstream page("body.html"); //file with html
+		page.imbue(locale(locale(), new codecvt_utf8<wchar_t>)); //Presets for russian text output
+		wcout.imbue(locale("rus_RUS.866"));
+		system("cls");
+		write_time(page);
+		find_tag(page);
+		page.close();
+		
 
-	get_page();
-
-	wifstream page("body.html"); //file with html
-	page.imbue(locale(locale(), new codecvt_utf8<wchar_t>)); //Presets for russian text output
-	wcout.imbue(locale("rus_RUS.866"));
-
-	write_time(page);
-	find_tag(page);
-	page.close();
-
+		Sleep(5000);
+		if (_kbhit() && _getch() == 27) break;
+	} while (1);
+	//
 	return 0;
 }
 void get_page()
 {
 	CURL *handle = NULL;
-	FILE *write;
+	FILE *write=NULL;
 	fopen_s(&write, "body.html", "w");
 	CURLcode res;
 	char URL[] = { "https://www.yandex.ru" };
