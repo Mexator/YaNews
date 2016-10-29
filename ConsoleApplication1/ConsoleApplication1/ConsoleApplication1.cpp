@@ -7,7 +7,7 @@
 #include <Windows.h>
 #pragma comment(lib,"libcurl.lib")
 using namespace std;
-//TODO Время обновления, циклическое выполнение(?)
+//TODO Writing in file, with date of start writing and date of end of it. We get news and compare if suc already exists in file. if not then creating
 //Оконную версию
 
 int write_file(char *ptr, size_t size, size_t nmemb, FILE *data);
