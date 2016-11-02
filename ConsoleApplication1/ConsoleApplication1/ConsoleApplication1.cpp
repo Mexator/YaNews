@@ -1,3 +1,4 @@
+//master
 #include "stdafx.h"
 #include "curl\curl.h"
 #include <iostream>
@@ -9,35 +10,42 @@
 using namespace std;
 //TODO Время обновления, циклическое выполнение(?)
 //Оконную версию
-
+//5-th news
 int write_file(char *ptr, size_t size, size_t nmemb, FILE *data);
 void get_page();
-
-void write_news(wifstream &p);
-void find_tag(wifstream &p);
-void write_time(wifstream &p);
+void cl_buf(wchar_t *buffer);
+void find_tag(wifstream &p, wchar_t *buffer);
+void write_news(wifstream &p, wchar_t *buffer);
+wchar_t *write_time(wifstream &p,wchar_t *buffer);
 
 int main()
 {
-	
-	
+	wchar_t output[1032] = { 0 };
 	do
 	{
 		get_page();
+
 		wifstream page("body.html"); //file with html
 		page.imbue(locale(locale(), new codecvt_utf8<wchar_t>)); //Presets for russian text output
 		wcout.imbue(locale("rus_RUS.866"));
+		write_time(page,output);
+		find_tag(page,output);
 		system("cls");
-		write_time(page);
-		find_tag(page);
+		wcout << output;
 		page.close();
-		
-
-		Sleep(5000);
+		cl_buf(output);
 		if (_kbhit() && _getch() == 27) break;
 	} while (1);
 	//
 	return 0;
+}
+void cl_buf(wchar_t *buffer)
+{
+	int a = wcslen(buffer);
+	for (int i = 0; i < a;i++)
+	{
+		buffer[i] = '\0';
+	}
 }
 void get_page()
 {
@@ -67,7 +75,7 @@ int write_file(char *ptr, size_t size, size_t nmemb, FILE *data)
 	int i = fwrite(ptr, size, nmemb, data);
 	return i;
 }
-void find_tag(wifstream &p)
+void find_tag(wifstream &p, wchar_t *buffer)
 {
 	wchar_t findstr[] = { L"<li class=\"list__item\">" };
 	int char_count = 0;
@@ -80,14 +88,14 @@ void find_tag(wifstream &p)
 			p.get(ch);
 			if (char_count == wcslen(findstr) - 1)
 			{
-				write_news(p);
+				write_news(p,buffer);
 			}
 			char_count++;
 		}
 		char_count = 0;
 	}
 }
-void write_time(wifstream &p)
+wchar_t *write_time(wifstream &p, wchar_t *buffer)
 {
 	wchar_t findstr[] = { L"timestamp&quot;:&quot;" };
 	wchar_t ch = NULL;
@@ -99,12 +107,15 @@ void write_time(wifstream &p)
 		{
 			if (char_count == wcslen(findstr) - 1)
 			{
+				int wr_count = 0;
 				while ((ch = p.get()) != L'&')
 				{
-					wcout << ch;
+					buffer[wr_count] = ch;
+					wr_count++;
 				}
-				wcout << "\n";
-				return;
+				buffer[wr_count] = L'\n';
+				buffer[wr_count+1] = L'\0';
+				return buffer;
 			}
 			p.get(ch);
 			char_count++;
@@ -112,7 +123,7 @@ void write_time(wifstream &p)
 		char_count = 0;
 	}
 }
-void write_news(wifstream &p)
+void write_news(wifstream &p, wchar_t *buffer)
 {
 	wchar_t findstr[] = { L"aria-label=\"" };
 	wchar_t ch = NULL;
@@ -127,9 +138,9 @@ void write_news(wifstream &p)
 			{
 				while ((ch = p.get()) != L'\"')
 				{
-					wcout << ch;
+					buffer[wcslen(buffer)] = ch;
 				}
-				wcout << "\n";
+				buffer[wcslen(buffer)] = L'\n';
 			}
 			p.get(ch);
 			char_count++;
